@@ -28,3 +28,8 @@ levels(f2)
 # 15.3
 gss_cat
 ?gss_cat
+gss_cat
+gss_cat %>% 
+  count(race)
+ggplot(gss_cat, aes(race)) +
+  geom_bar()
