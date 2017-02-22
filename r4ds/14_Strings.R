@@ -634,7 +634,7 @@ phone <- regex("
   (\\d{3}) # another three numbers
   [ -]?    # optional space or dash
   (\\d{3}) # three more numbers
-  ", comments = TRUE)
+  ", comments = TRUE
 )
 phone
 str_match("514-791-8141", phone)
