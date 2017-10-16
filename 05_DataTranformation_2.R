@@ -127,3 +127,73 @@ min_rank(desc(y))
 ?min_rank
 x <- c(5, 1, 3, 2, 2)
 min_rank(x)
+row_number(y)
+dense_rank(y)
+percent_rank(y)
+cume_dist(y)
+
+# 5.5.2 Exercises
+#1
+flights %>% 
+  select(dep_time, sched_dep_time) %>% 
+  mutate(dep_time_hour = dep_time %/% 100,
+         dep_time_min = dep_time %% 100,
+         sched_dep_time_hour = sched_dep_time %/% 100,
+         sched_dep_time_min = sched_dep_time %% 100) %>% 
+  transmute(dep_time_minutes = dep_time_hour * 60 + dep_time_min,
+         sched_dep_time_minutes = sched_dep_time_hour * 60 + sched_dep_time_min)
+
+time2mins <- function(x) {
+  return((x %/% 100) * 60 + x %% 100)
+}
+time2mins(517)
+flights %>% 
+  select(dep_time, sched_dep_time) %>% 
+  transmute(dep_time_mins = time2mins(dep_time),
+            sched_dep_time_mins = time2mins(sched_dep_time))
+            
+#2
+flights %>% 
+  select(air_time, arr_time, dep_time) %>% 
+  mutate(air_time_calc = arr_time - dep_time)
+
+#3
+flights %>% 
+  select(dep_time, sched_dep_time, dep_delay) %>% 
+  mutate(dep_delay2 = time2mins(dep_time) - time2mins(sched_dep_time)) %>% 
+  filter(dep_delay2 != dep_delay)
+
+#4
+flights %>% 
+  mutate(dep_delay_rank = min_rank(dep_delay)) %>% 
+  arrange(desc(dep_delay_rank)) %>% 
+  # select(flight, dep_delay_rank) %>% 
+  filter(dep_delay_rank <= 10)
+
+
+# 5.6 Grouped summaries with summarise() ----------------------------------
+
+not_cancelled <- flights %>% 
+  filter(!is.na(dep_delay), !is.na(arr_delay))
+not_cancelled %>% 
+  group_by(year, month, day) %>% 
+  summarise(mean = mean(dep_delay))
+delays <- not_cancelled %>% 
+  group_by(tailnum) %>% 
+  summarise(delay = mean(arr_delay))
+ggplot(delays, aes(x = delay)) +
+  geom_freqpoly(binwidth = 10)
+
+delays <- not_cancelled %>% 
+  group_by(tailnum) %>% 
+  summarise(
+    delay = mean(dep_delay, na.rm = TRUE),
+    n = n()
+  )
+ggplot(delays, aes(x = n, y = delay)) +
+  geom_point(alpha = 0.1)
+
+delays %>% 
+  filter(n > 25) %>% 
+  ggplot(aes(n, delay)) +
+  geom_point(alpha = 0.1)
